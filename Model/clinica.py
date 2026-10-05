@@ -52,4 +52,12 @@ class Clinica:
     @property
     def profissionais(self):
         return self.__profissionais
+
+    def adicionar_profissional(self, profissional):
+        if profissional in self.__profissionais:
+            raise ValueError(
+                "Profissional já vinculado a esta clínica."
+            )
+
+        self.__profissionais.append(profissional)
     

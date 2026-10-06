@@ -132,5 +132,5 @@ class Atendimento:
         valores_pagos = []
         for pagamento in self.__pagamentos:
             valores_pagos.append(pagamento.valor_pago)
-            total_pago = sum(valores_pagos)
+        total_pago = sum(valores_pagos)
         return self.__valor_total - total_pago

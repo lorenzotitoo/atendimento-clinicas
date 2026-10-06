@@ -60,4 +60,10 @@ class Clinica:
             )
 
         self.__profissionais.append(profissional)
+
+    def excluir_profissional(self, profissional):
+        if profissional in self.__profissionais:
+            self.__profissionais.remove(profissional)
+        else:
+            raise ValueError("Profissional não é vinculado a esta clínica.")
     

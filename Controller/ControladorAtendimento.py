@@ -216,9 +216,7 @@ class ControladorAtendimento:
     
             while True:
                 opcao = self.__limite_atendimento.limite_opcoes()
-                if opcao == -1:
-                    self.__controlador_sistema.encerrar_sistema()
-                    break
+                
     
                 if opcao == 0:
                     break

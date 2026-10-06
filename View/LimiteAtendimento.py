@@ -42,6 +42,8 @@ class LimiteAtendimento:
                 print(f"{tipo.value} - {tipo.name}")
             tipo_atendimento = TipoAtendimento(int(input("Tipo de atendimento: ")))
             valor_total = Decimal(input("Valor total: ").replace(",", "."))
+            if not valor_total.is_finite() or valor_total <= 0:
+                raise ValueError
         except (ValueError, InvalidOperation):
             self.limite_mensagem("Dados inválidos. Verifique data (DD/MM/AAAA), horários (HH:MM), tipo e valor.")
             return None
@@ -82,15 +84,18 @@ class LimiteAtendimento:
             descricao = input("Descrição: ").strip()
             custo = Decimal(input("Custo: ").replace(",", "."))
             cpf_profissional = input("CPF do profissional: ").strip()
-
-            if not descricao or not cpf_profissional or not custo:
-                self.limite_mensagem(
-                    "Existe(m) campo(s) obrigatório(s) vazio(s)"
-                )
-
         except InvalidOperation:
             self.limite_mensagem("Custo inválido.")
             return None
+
+        if not custo.is_finite() or custo <= 0:
+            self.limite_mensagem("Custo inválido. Informe um valor maior que zero.")
+            return None
+
+        if not descricao or not cpf_profissional:
+            self.limite_mensagem("Existe(m) campo(s) obrigatório(s) vazio(s)")
+            return None
+
         return {"descricao": descricao,
                 "custo": custo,
                 "cpf_profissional": cpf_profissional}

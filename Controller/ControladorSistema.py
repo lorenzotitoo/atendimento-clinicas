@@ -46,13 +46,13 @@ class ControladorSistema:
             3: self.cadastrar_profissionais,
             4: self.gerenciar_atendimentos,
             5: self.gerar_relatorios,
-            0: self.encerrar_sistema
+            
         }
 
         while True:
             opcao = self.__limite_sistema.limite_opcoes()
             
-            if opcao == -1 or opcao == 0:
+            if opcao == 0:
                 self.encerrar_sistema()
                 break
                 

@@ -18,6 +18,8 @@ class ControladorProfissional:
 
     def incluir_profissional(self):
         dados = self.__limite_profissional.coletar_dados_profissional()
+        if dados is None:
+            return
         if self.buscar_profissional(dados["cpf"]) is not None:
             self.__limite_profissional.limite_mensagem("Já existe um profissional com esse CPF.")
             return
@@ -42,6 +44,8 @@ class ControladorProfissional:
             self.__limite_profissional.limite_mensagem("Profissional não encontrado.")
             return
         dados = self.__limite_profissional.coletar_dados_profissional()
+        if dados is None:
+            return
         if dados["cpf"] != profissional.cpf and self.buscar_profissional(dados["cpf"]) is not None:
             self.__limite_profissional.limite_mensagem("Já existe um profissional com esse CPF.")
             return
@@ -80,9 +84,7 @@ class ControladorProfissional:
 
             while True:
                 opcao = self.__limite_profissional.limite_opcoes()
-                if opcao == -1:
-                    self.__controlador_sistema.encerrar_sistema()
-                    break
+                
 
                 if opcao == 0:
                     break

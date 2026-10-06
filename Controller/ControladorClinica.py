@@ -68,7 +68,7 @@ class ControladorClinica:
     
     def buscar_clinica(self, nome: str) -> Clinica:
         for clinica in self.__clinicas:
-            if clinica.nome == nome:
+            if clinica.nome.lower() == nome.lower():
                 return clinica
         return None   
 
@@ -123,10 +123,8 @@ class ControladorClinica:
 
         while True:
             opcao = self.__limite_clinica.limite_opcoes()
+
             
-            if opcao == -1:
-                self.__controlador_sistema.encerrar_sistema()
-                break
             if opcao == 0:
                 break
             

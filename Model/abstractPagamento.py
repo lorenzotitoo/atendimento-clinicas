@@ -1,13 +1,12 @@
 from abc import ABC, abstractmethod
 from datetime import date as Date
-from Model.atendimento import Atendimento
 from Model.paciente import Paciente
 from decimal import Decimal
 
 class AbstractPagamento(ABC):
     def __init__(self, 
                 data: Date, 
-                atendimento: Atendimento, 
+                atendimento: "Atendimento", 
                 paciente: Paciente, 
                 valor_pago: Decimal):
         self.__data = data

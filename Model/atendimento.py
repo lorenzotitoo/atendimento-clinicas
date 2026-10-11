@@ -96,37 +96,37 @@ class Atendimento:
     def procedimentos(self) -> Procedimento:
         return self.__procedimentos
 
-    def adicionar_procedimento(self, procedimento: Procedimento) -> bool:
-        if isinstance(procedimento, Procedimento):
-            if procedimento not in self.__procedimentos:
-                self.__procedimentos.append(procedimento)
-                return True
-        return False
+    def adicionar_procedimento(self, procedimento: Procedimento):
+        if not isinstance(procedimento, Procedimento):
+            raise TypeError("O objeto informado não é um procedimento válido.")
+        if procedimento in self.__procedimentos:
+            raise ValueError("Este procedimento já foi incluído no atendimento.")
+        self.__procedimentos.append(procedimento)
 
-    def remover_procedimento(self, procedimento: Procedimento) -> bool:
-        if isinstance(procedimento, Procedimento):
-            if procedimento in self.__procedimentos:
-                self.__procedimentos.remove(procedimento)
-                return True
-        return False
+    def remover_procedimento(self, procedimento: Procedimento):
+        if not isinstance(procedimento, Procedimento):
+            raise TypeError("O objeto informado não é um procedimento válido.")
+        if procedimento not in self.__procedimentos:
+            raise ValueError("Este procedimento não está associado ao atendimento.")
+        self.__procedimentos.remove(procedimento)
 
     @property
-    def pagamentos(self) -> AbstractPagamento:
+    def pagamentos(self) -> list[AbstractPagamento]:
         return self.__pagamentos
 
-    def adicionar_pagamento(self, pagamento: AbstractPagamento) -> bool:
-        if isinstance(pagamento, AbstractPagamento):
-            if pagamento not in self.__pagamentos:
-                self.__pagamentos.append(pagamento)
-                return True
-        return False
+    def adicionar_pagamento(self, pagamento: AbstractPagamento):
+        if not isinstance(pagamento, AbstractPagamento):
+            raise TypeError("O objeto informado não é um pagamento válido.")
+        if pagamento in self.__pagamentos:
+            raise ValueError("Este pagamento já foi incluído no atendimento.")
+        self.__pagamentos.append(pagamento)
 
-    def remover_pagamento(self, pagamento: AbstractPagamento) -> bool:
-        if isinstance(pagamento, AbstractPagamento):
-            if pagamento in self.__pagamentos:
-                self.__pagamentos.remove(pagamento)
-                return True
-        return False
+    def remover_pagamento(self, pagamento: AbstractPagamento):
+        if not isinstance(pagamento, AbstractPagamento):
+            raise TypeError("O objeto informado não é um pagamento válido.")
+        if pagamento not in self.__pagamentos:
+            raise ValueError("Este pagamento não está associado ao atendimento.")
+        self.__pagamentos.remove(pagamento)
 
     def calcular_valor_restante(self) -> Decimal:
         valores_pagos = []

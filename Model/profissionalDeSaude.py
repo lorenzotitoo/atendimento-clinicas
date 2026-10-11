@@ -24,3 +24,6 @@ class ProfissionalDeSaude(AbstractPessoa):
     @registro_profissional.setter
     def registro_profissional(self, registro_profissional: str):
         self.__registro_profissional = registro_profissional
+
+    def tipo_pessoa(self) -> str:
+        return "Profissional de Saúde"

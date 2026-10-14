@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 
 class AbstractPessoa(ABC):
     def __init__(self, nome: str, celular: str, cpf: str):
@@ -26,3 +26,8 @@ class AbstractPessoa(ABC):
     @cpf.setter
     def cpf(self, cpf: str):
         self.__cpf = cpf
+
+    @abstractmethod
+    def tipo_pessoa(self) -> str:
+        pass
+

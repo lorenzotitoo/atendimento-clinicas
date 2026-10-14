@@ -23,3 +23,6 @@ class Paciente(AbstractPessoa):
         if (hoje.month, hoje.day) < (self.__data_nasc.month, self.__data_nasc.day):
             idade -= 1
         return idade
+
+    def tipo_pessoa(self) -> str:
+        return "Paciente"

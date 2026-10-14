@@ -3,6 +3,7 @@ from decimal import Decimal
 from Model.abstractPagamento import AbstractPagamento
 from Model.atendimento import Atendimento
 from Model.paciente import Paciente
+from Model.validacoes import validar_cpf
 
 class Pix(AbstractPagamento):
     def __init__(self,
@@ -12,6 +13,7 @@ class Pix(AbstractPagamento):
         valor_pago: Decimal,
         cpf_pagador: str):
         super().__init__(data, atendimento, paciente, valor_pago)
+        validar_cpf(cpf_pagador)
         self.__cpf_pagador = cpf_pagador
 
     @property
@@ -19,6 +21,7 @@ class Pix(AbstractPagamento):
         return self.__cpf_pagador
     @cpf_pagador.setter
     def cpf_pagador(self, cpf_pagador: str):
+        validar_cpf(cpf_pagador)
         self.__cpf_pagador = cpf_pagador
 
     def modalidade(self) -> str:

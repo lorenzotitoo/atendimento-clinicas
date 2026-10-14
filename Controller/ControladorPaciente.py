@@ -1,4 +1,9 @@
 from Model.paciente import Paciente
+from Model.excecoes import SistemaClinicaError
+from Model.validacoes import (validar_cpf,
+                              validar_data_nascimento,
+                              calcular_idade,
+                              IDADE_MINIMA_ATENDIMENTO)
 from View.LimitePaciente import LimitePaciente
 
 class ControladorPaciente:
@@ -31,8 +36,8 @@ class ControladorPaciente:
             )
             self.__pacientes.append(paciente)
             self.__limite_paciente.limite_mensagem("Paciente incluído com sucesso!")
-        except Exception as e:
-            self.__limite_paciente.limite_mensagem(f"Ocorreu um erro ao tentar cadastrar o Paciente: {e}")
+        except SistemaClinicaError as erro:
+            self.__limite_paciente.limite_mensagem(f"Ocorreu um erro ao tentar cadastrar o Paciente: {erro}")
     
     def listar_pacientes(self):
         self.__limite_paciente.exibir_pacientes(self.__pacientes)
@@ -48,6 +53,21 @@ class ControladorPaciente:
         if dados["cpf"] != paciente.cpf and self.buscar_paciente(dados["cpf"]) is not None:
             self.__limite_paciente.limite_mensagem("Já existe um paciente com esse CPF.")
             return
+            
+        try:
+            validar_cpf(dados["cpf"])
+            validar_data_nascimento(dados["data_nasc"])
+        except SistemaClinicaError as erro:
+            self.__limite_paciente.limite_mensagem(str(erro))
+            return
+            
+        for atendimento in self.__controlador_sistema.controlador_atendimentos.atendimentos:
+            if atendimento.paciente is paciente:
+                if calcular_idade(dados["data_nasc"], atendimento.data) < IDADE_MINIMA_ATENDIMENTO:
+                    self.__limite_paciente.limite_mensagem(
+                        "Não é possível alterar: com essa data de nascimento o paciente seria menor de idade em atendimentos já cadastrados.")
+                    return
+                    
         paciente.nome = dados["nome"]
         paciente.celular = dados["celular"]
         paciente.cpf = dados["cpf"]
@@ -59,6 +79,12 @@ class ControladorPaciente:
         if paciente is None:
             self.__limite_paciente.limite_mensagem("Paciente não encontrado.")
             return
+            
+        for atendimento in self.__controlador_sistema.controlador_atendimentos.atendimentos:
+            if atendimento.paciente is paciente:
+                self.__limite_paciente.limite_mensagem("Não é possível excluir: o paciente possui atendimentos cadastrados.")
+                return
+                
         self.__pacientes.remove(paciente)
         self.__limite_paciente.limite_mensagem("Paciente excluído com sucesso.")
  
@@ -79,9 +105,7 @@ class ControladorPaciente:
 
         while True:
             opcao = self.__limite_paciente.limite_opcoes()
-            if opcao == -1:
-                self.__controlador_sistema.encerrar_sistema()
-                break
+            
 
             if opcao == 0:
                 break

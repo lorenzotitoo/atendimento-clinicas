@@ -1,4 +1,5 @@
 from datetime import time as Time
+from Model.validacoes import validar_horario_funcionamento
 
 class Clinica:
     def __init__(self,
@@ -7,6 +8,7 @@ class Clinica:
                 descricao: str, 
                 horario_fun_inicio: Time,
                 horario_fun_fim: Time):
+        validar_horario_funcionamento(horario_fun_inicio, horario_fun_fim)
         self.__nome = nome
         self.__cidade = cidade
         self.__descricao = descricao

@@ -25,7 +25,7 @@ class AbstractPagamento(ABC):
     def atendimento(self):
         return self.__atendimento
     @atendimento.setter
-    def atendimento(self, atendimento: Atendimento):    
+    def atendimento(self, atendimento: "Atendimento"):    
         self.__atendimento = atendimento
 
     @property

@@ -3,6 +3,7 @@ from decimal import Decimal
 from Model.abstractPagamento import AbstractPagamento
 from Model.atendimento import Atendimento
 from Model.paciente import Paciente
+from Model.validacoes import validar_numero_cartao
 
 class CartaoCredito(AbstractPagamento):
     def __init__(self,
@@ -21,6 +22,7 @@ class CartaoCredito(AbstractPagamento):
         return self.__num_cartao
     @num_cartao.setter
     def num_cartao(self, num_cartao: str):
+        validar_numero_cartao(num_cartao)
         self.__num_cartao = num_cartao
 
     @property

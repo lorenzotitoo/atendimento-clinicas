@@ -1,4 +1,6 @@
 from Model.profissionalDeSaude import ProfissionalDeSaude
+from Model.excecoes import SistemaClinicaError
+from Model.validacoes import validar_cpf
 from View.LimiteProfissional import LimiteProfissional
 
 class ControladorProfissional:
@@ -32,8 +34,8 @@ class ControladorProfissional:
             self.__profissionais.append(profissional)
             self.__limite_profissional.limite_mensagem("Profissional incluído com sucesso.")
 
-        except Exception as e:
-            self.__limite_profissional.limite_mensagem(f"Ocorreu um erro ao tentar cadastrar o Profissional: {e}")
+        except SistemaClinicaError as erro:
+            self.__limite_profissional.limite_mensagem(f"Ocorreu um erro ao tentar cadastrar o Profissional: {erro}")
 
     def listar_profissionais(self):
         self.__limite_profissional.exibir_profissionais(self.__profissionais)
@@ -49,6 +51,13 @@ class ControladorProfissional:
         if dados["cpf"] != profissional.cpf and self.buscar_profissional(dados["cpf"]) is not None:
             self.__limite_profissional.limite_mensagem("Já existe um profissional com esse CPF.")
             return
+            
+        try:
+            validar_cpf(dados["cpf"])
+        except SistemaClinicaError as erro:
+            self.__limite_profissional.limite_mensagem(str(erro))
+            return
+            
         profissional.nome = dados["nome"]
         profissional.celular = dados["celular"]
         profissional.cpf = dados["cpf"]
@@ -61,6 +70,16 @@ class ControladorProfissional:
         if profissional is None:
             self.__limite_profissional.limite_mensagem("Profissional não encontrado.")
             return
+            
+        for atendimento in self.__controlador_sistema.controlador_atendimentos.atendimentos:
+            em_uso = atendimento.profissional is profissional
+            for procedimento in atendimento.procedimentos:
+                if procedimento.profissional is profissional:
+                    em_uso = True
+            if em_uso:
+                self.__limite_profissional.limite_mensagem(
+                    "Não é possível excluir: o profissional possui atendimentos ou procedimentos cadastrados.")
+                return
         # remove o vínculo com as clínicas antes de excluir
         for clinica in self.__controlador_sistema.controlador_clinicas.clinicas:
             if profissional in clinica.profissionais:

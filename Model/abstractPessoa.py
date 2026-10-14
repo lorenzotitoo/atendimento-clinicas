@@ -1,9 +1,11 @@
 from abc import ABC, abstractmethod
+from Model.validacoes import validar_cpf
 
 class AbstractPessoa(ABC):
     def __init__(self, nome: str, celular: str, cpf: str):
         self.__nome = nome
         self.__celular = celular
+        validar_cpf(cpf)
         self.__cpf = cpf
 
     @property
@@ -25,6 +27,7 @@ class AbstractPessoa(ABC):
         return self.__cpf
     @cpf.setter
     def cpf(self, cpf: str):
+        validar_cpf(cpf)
         self.__cpf = cpf
 
     @abstractmethod

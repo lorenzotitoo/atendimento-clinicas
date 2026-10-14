@@ -3,6 +3,7 @@ from Model.procedimento import Procedimento
 from Model.dinheiro import Dinheiro
 from Model.pix import Pix
 from Model.cartaoCredito import CartaoCredito
+from Model.excecoes import SistemaClinicaError
 from View.LimiteAtendimento import LimiteAtendimento
 
 class ControladorAtendimento:
@@ -62,14 +63,18 @@ class ControladorAtendimento:
         if referencias is None:
             return
         paciente, clinica, profissional = referencias
-        atendimento = Atendimento(clinica,
-                                  paciente,
-                                  profissional,
-                                  dados["data"],
-                                  dados["horario_inicio"],
-                                  dados["horario_fim"],
-                                  dados["tipo_atendimento"],
-                                  dados["valor_total"])
+        try:
+            atendimento = Atendimento(clinica,
+                                    paciente,
+                                    profissional,
+                                    dados["data"],
+                                    dados["horario_inicio"],
+                                    dados["horario_fim"],
+                                    dados["tipo_atendimento"],
+                                    dados["valor_total"])
+        except SistemaClinicaError as erro:
+            self.__limite_atendimento.limite_mensagem(str(erro))
+            return
         atendimento.id_atendimento = max([a.id_atendimento for a in self.__atendimentos], default=0) + 1
         self.__atendimentos.append(atendimento)
         self.__limite_atendimento.limite_mensagem(f"Atendimento incluído com sucesso. ID: {atendimento.id_atendimento}")
@@ -89,14 +94,19 @@ class ControladorAtendimento:
         if referencias is None:
             return
         paciente, clinica, profissional = referencias
-        atendimento.paciente = paciente
-        atendimento.clinica = clinica
-        atendimento.profissional = profissional
-        atendimento.data = dados["data"]
-        atendimento.horario_inicio = dados["horario_inicio"]
-        atendimento.horario_fim = dados["horario_fim"]
-        atendimento.tipo_atendimento = dados["tipo_atendimento"]
-        atendimento.valor_total = dados["valor_total"]
+        try:  
+            atendimento.alterar_dados(clinica,
+                                      paciente,
+                                      profissional,
+                                      dados["data"],
+                                      dados["horario_inicio"],
+                                      dados["horario_fim"],
+                                      dados["tipo_atendimento"],
+                                      dados["valor_total"])
+        except SistemaClinicaError as erro:
+            self.__limite_atendimento.limite_mensagem(str(erro))
+            return
+            
         self.__limite_atendimento.limite_mensagem("Atendimento alterado com sucesso.")
 
     def excluir_atendimento(self):
@@ -126,10 +136,11 @@ class ControladorAtendimento:
             self.__limite_atendimento.limite_mensagem("Profissional não encontrado.")
             return
         procedimento = Procedimento(dados["descricao"], dados["custo"], profissional)
-        if atendimento.adicionar_procedimento(procedimento):
+        try:
+            atendimento.adicionar_procedimento(procedimento)
             self.__limite_atendimento.limite_mensagem("Procedimento incluído com sucesso.")
-        else:
-            self.__limite_atendimento.limite_mensagem("Não foi possível incluir o procedimento.")
+        except (SistemaClinicaError, TypeError, ValueError) as erro:
+            self.__limite_atendimento.limite_mensagem(f"Não foi possível incluir o procedimento: {erro}")
 
     def excluir_procedimento(self):
         atendimento = self.buscar_atendimento(self.__limite_atendimento.escolher_atendimento())
@@ -155,35 +166,77 @@ class ControladorAtendimento:
             return
         self.__limite_atendimento.exibir_procedimentos(atendimento.procedimentos)
 
+    def alterar_procedimento(self):
+        atendimento = self.buscar_atendimento(self.__limite_atendimento.escolher_atendimento())
+        if atendimento is None:
+            self.__limite_atendimento.limite_mensagem("Atendimento não encontrado.")
+            return
+            
+        self.__limite_atendimento.exibir_procedimentos(atendimento.procedimentos)
+        indice = self.__limite_atendimento.escolher_procedimento()
+        
+        if indice < 1 or indice > len(atendimento.procedimentos):
+            self.__limite_atendimento.limite_mensagem("Procedimento não encontrado.")
+            return
+            
+        procedimento = atendimento.procedimentos[indice - 1]
+        dados = self.__limite_atendimento.coletar_dados_procedimento()
+        
+        if dados is None:
+            return
+            
+        profissional = self.__controlador_sistema.controlador_profissionais.buscar_profissional(dados["cpf_profissional"])
+        if profissional is None:
+            self.__limite_atendimento.limite_mensagem("Profissional não encontrado.")
+            return
+            
+        try:
+            atendimento.alterar_procedimento(procedimento, dados["descricao"], dados["custo"], profissional)
+            self.__limite_atendimento.limite_mensagem("Procedimento alterado com sucesso.")
+        except (SistemaClinicaError, TypeError, ValueError) as erro:
+            self.__limite_atendimento.limite_mensagem(f"Não foi possível alterar o procedimento: {erro}")
+    
     def incluir_pagamento(self):
         atendimento = self.buscar_atendimento(self.__limite_atendimento.escolher_atendimento())
         if atendimento is None:
             self.__limite_atendimento.limite_mensagem("Atendimento não encontrado.")
             return
+            
         valor_restante = atendimento.calcular_valor_restante()
         self.__limite_atendimento.exibir_valor_restante(valor_restante)
+        
         if valor_restante <= 0:
             self.__limite_atendimento.limite_mensagem("Este atendimento já está quitado.")
             return
+            
         dados = self.__limite_atendimento.coletar_dados_pagamento()
         if dados is None:
             return
-        if dados["valor_pago"] <= 0 or dados["valor_pago"] > valor_restante:
-            self.__limite_atendimento.limite_mensagem("O valor pago deve ser maior que zero e não pode ultrapassar o valor restante.")
+            
+        try:
+            if dados["modalidade"] == 1:
+                pagamento = Dinheiro(dados["data"], atendimento, atendimento.paciente, dados["valor_pago"])
+            elif dados["modalidade"] == 2:
+                pagamento = Pix(dados["data"], atendimento, atendimento.paciente, dados["valor_pago"], dados["cpf_pagador"])
+            else:
+                pagamento = CartaoCredito(dados["data"], atendimento, atendimento.paciente, dados["valor_pago"],
+                                          dados["num_cartao"], dados["bandeira"])
+            atendimento.adicionar_pagamento(pagamento)
+        except (SistemaClinicaError, TypeError, ValueError) as erro:
+            self.__limite_atendimento.limite_mensagem(f"Não foi possível incluir o pagamento: {erro}")
             return
-        if dados["modalidade"] == 1:
-            pagamento = Dinheiro(dados["data"], atendimento, atendimento.paciente, dados["valor_pago"])
-        elif dados["modalidade"] == 2:
-            pagamento = Pix(dados["data"], atendimento, atendimento.paciente, dados["valor_pago"], dados["cpf_pagador"])
-        else:
-            pagamento = CartaoCredito(dados["data"], atendimento, atendimento.paciente, dados["valor_pago"],
-                                      dados["num_cartao"], dados["bandeira"])
-        if atendimento.adicionar_pagamento(pagamento):
-            self.__limite_atendimento.limite_mensagem("Pagamento incluído com sucesso.")
-            self.__limite_atendimento.exibir_valor_restante(atendimento.calcular_valor_restante())
-        else:
-            self.__limite_atendimento.limite_mensagem("Não foi possível incluir o pagamento.")
+            
+        self.__limite_atendimento.limite_mensagem("Pagamento incluído com sucesso.")
+        self.__limite_atendimento.exibir_valor_restante(atendimento.calcular_valor_restante())
 
+    def listar_pagamentos(self):
+        atendimento = self.buscar_atendimento(self.__limite_atendimento.escolher_atendimento())
+        if atendimento is None:
+            self.__limite_atendimento.limite_mensagem("Atendimento não encontrado.")
+            return
+        self.__limite_atendimento.exibir_pagamentos(atendimento.pagamentos)
+        self.__limite_atendimento.exibir_valor_restante(atendimento.calcular_valor_restante())
+    
     def excluir_pagamento(self):
         atendimento = self.buscar_atendimento(self.__limite_atendimento.escolher_atendimento())
         if atendimento is None:
@@ -198,7 +251,7 @@ class ControladorAtendimento:
             atendimento.remover_pagamento(atendimento.pagamentos[indice - 1])
             self.__limite_atendimento.limite_mensagem("Pagamento excluído com sucesso.")
             self.__limite_atendimento.exibir_valor_restante(atendimento.calcular_valor_restante())
-        except Exception as erro:
+        except (TypeError, ValueError) as erro:
             self.__limite_atendimento.limite_mensagem(f"Ocorreu um erro ao tentar excluir o Pagamento: {erro}")
 
     def abre_menu(self):
@@ -209,22 +262,22 @@ class ControladorAtendimento:
                 4: self.excluir_atendimento,
                 5: self.incluir_procedimento,
                 6: self.listar_procedimentos,
-                7: self.excluir_procedimento,
-                8: self.incluir_pagamento,
-                9: self.excluir_pagamento
+                7: self.alterar_procedimento,
+                8: self.excluir_procedimento,
+                9: self.incluir_pagamento,
+                10: self.listar_pagamentos,
+                11: self.excluir_pagamento
             }
     
             while True:
                 opcao = self.__limite_atendimento.limite_opcoes()
                 
-    
                 if opcao == 0:
                     break
                 funcao_escolhida = opcoes.get(opcao)
                 
                 if funcao_escolhida:
                     funcao_escolhida()
-        
                 else:
                     self.__limite_atendimento.limite_mensagem("Opção inválida! Digite um número válido.")
 

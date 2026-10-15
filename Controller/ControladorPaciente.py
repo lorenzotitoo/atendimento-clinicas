@@ -60,7 +60,8 @@ class ControladorPaciente:
         except SistemaClinicaError as erro:
             self.__limite_paciente.limite_mensagem(str(erro))
             return
-            
+
+        # Impede alteração de data de nascimento se tornaria o paciente menor de idade na data do atendimento   
         for atendimento in self.__controlador_sistema.controlador_atendimentos.atendimentos:
             if atendimento.paciente is paciente:
                 if calcular_idade(dados["data_nasc"], atendimento.data) < IDADE_MINIMA_ATENDIMENTO:

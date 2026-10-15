@@ -1,4 +1,5 @@
 from datetime import datetime
+from View.entrada import ler_campo, OperacaoCanceladaError
 
 class LimiteClinica:
     def limite_opcoes(self) -> int:
@@ -16,18 +17,26 @@ class LimiteClinica:
             return -1
 
     def coletar_dados_clinica(self) -> dict:
+        print("(Digite 0 em qualquer campo para cancelar)")
         try:
-            nome = input("Nome: ").strip()
-            cidade = input("Cidade: ").strip()
-            descricao = input("Descrição: ").strip()
-            horario_fun_inicio = datetime.strptime(input("Horário de abertura (HH:MM): "), "%H:%M").time()
-            horario_fun_fim = datetime.strptime(input("Horário de fechamento (HH:MM): "), "%H:%M").time()
+            # Uso do ler_campo() garante que se digitar "0", o fluxo pula direto para o except OperacaoCanceladaError
+            nome = ler_campo("Nome: ")
+            cidade = ler_campo("Cidade: ")
+            descricao = ler_campo("Descrição: ")
+            horario_fun_inicio = datetime.strptime(ler_campo("Horário de abertura (HH:MM): "), "%H:%M").time()
+            horario_fun_fim = datetime.strptime(ler_campo("Horário de fechamento (HH:MM): "), "%H:%M").time()
+            
             if not nome or not cidade or not descricao:
                 self.limite_mensagem("Existe(m) campo(s) obrigatório(s) vazio(s)")
                 return None
+                
+        except OperacaoCanceladaError:
+            self.limite_mensagem("Operação cancelada.")
+            return None
         except ValueError:
             self.limite_mensagem("Horário inválido. Use o formato HH:MM.")
             return None
+
         return {"nome": nome,
                 "cidade": cidade,
                 "descricao": descricao,

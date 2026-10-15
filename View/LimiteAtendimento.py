@@ -4,6 +4,7 @@ from Model.atendimento import Atendimento
 from Model.procedimento import Procedimento
 from Model.abstractPagamento import AbstractPagamento
 from Model.tipoAtendimento import TipoAtendimento
+from View.entrada import ler_campo, OperacaoCanceladaError
 
 class LimiteAtendimento:
     def limite_opcoes(self) -> int:
@@ -26,29 +27,40 @@ class LimiteAtendimento:
             return -1
 
     def coletar_dados_atendimento(self) -> dict:
+        print("(Digite 0 em qualquer campo para cancelar)")
         try:
-            cpf_paciente = input("CPF do paciente: ").strip()
-            nome_clinica = input("Nome da clínica: ").strip()
-            cpf_profissional = input("CPF do profissional: ").strip()
+            # Uso do ler_campo() garante que se digitar "0", o fluxo pula direto para o except OperacaoCanceladaError
+            cpf_paciente = ler_campo("CPF do paciente: ")
+            nome_clinica = ler_campo("Nome da clínica: ")
+            cpf_profissional = ler_campo("CPF do profissional: ")
 
             if not cpf_paciente or not nome_clinica or not cpf_profissional:
                 self.limite_mensagem(
                     "Existe(m) campo(s) obrigatório(s) vazio(s)"
                 )
                 return None
-
-            data = datetime.strptime(input("Data (DD/MM/AAAA): "), "%d/%m/%Y").date()
-            horario_inicio = datetime.strptime(input("Horário de início (HH:MM): "), "%H:%M").time()
-            horario_fim = datetime.strptime(input("Horário de fim (HH:MM): "), "%H:%M").time()
+            # Leitura de datas e horários sujeitas a ValueError
+            data = datetime.strptime(ler_campo("Data (DD/MM/AAAA): "), "%d/%m/%Y").date()
+            horario_inicio = datetime.strptime(ler_campo("Horário de início (HH:MM): "), "%H:%M").time()
+            horario_fim = datetime.strptime(ler_campo("Horário de fim (HH:MM): "), "%H:%M").time()
+            
             for tipo in TipoAtendimento:
                 print(f"{tipo.value} - {tipo.name}")
-            tipo_atendimento = TipoAtendimento(int(input("Tipo de atendimento: ")))
-            valor_total = Decimal(input("Valor total: ").replace(",", "."))
+            
+            tipo_atendimento = TipoAtendimento(int(ler_campo("Tipo de atendimento: ")))
+            valor_total = Decimal(ler_campo("Valor total: ").replace(",", "."))
+            
             if not valor_total.is_finite() or valor_total <= 0:
                 raise ValueError
+        
+        except OperacaoCanceladaError:
+            self.limite_mensagem("Operação cancelada.")
+            return None
+        
         except (ValueError, InvalidOperation):
             self.limite_mensagem("Dados inválidos. Verifique data (DD/MM/AAAA), horários (HH:MM), tipo e valor.")
             return None
+        
         return {"cpf_paciente": cpf_paciente,
                 "nome_clinica": nome_clinica,
                 "cpf_profissional": cpf_profissional,
@@ -82,10 +94,15 @@ class LimiteAtendimento:
             print(f"Pagamentos: {len(atendimento.pagamentos)}")
 
     def coletar_dados_procedimento(self) -> dict:
+        print("(Digite 0 em qualquer campo para cancelar)")
         try:
-            descricao = input("Descrição: ").strip()
-            custo = Decimal(input("Custo: ").replace(",", "."))
-            cpf_profissional = input("CPF do profissional: ").strip()
+            descricao = ler_campo("Descrição: ")
+            custo = Decimal(ler_campo("Custo: ").replace(",", "."))
+            cpf_profissional = ler_campo("CPF do profissional: ")
+        except OperacaoCanceladaError:
+            self.limite_mensagem("Operação cancelada.")
+            return None
+        
         except InvalidOperation:
             self.limite_mensagem("Custo inválido.")
             return None
@@ -116,23 +133,30 @@ class LimiteAtendimento:
             print(f"{i} - {procedimento.descricao} | R$ {procedimento.custo:.2f} | {procedimento.profissional.nome}")
 
     def coletar_dados_pagamento(self) -> dict:
+        print("(Digite 0 em qualquer campo para cancelar)")
         try:
             print("1 - Dinheiro")
             print("2 - Pix")
             print("3 - Cartão de Crédito")
-            modalidade = int(input("Modalidade: "))
+            modalidade = int(ler_campo("Modalidade: "))
+            
             if modalidade not in (1, 2, 3):
                 raise ValueError
-            data = datetime.strptime(input("Data do pagamento (DD/MM/AAAA): "), "%d/%m/%Y").date()
-            valor_pago = Decimal(input("Valor pago: ").replace(",", "."))
+            data = datetime.strptime(ler_campo("Data do pagamento (DD/MM/AAAA): "), "%d/%m/%Y").date()
+            valor_pago = Decimal(ler_campo("Valor pago: ").replace(",", "."))
             dados = {"modalidade": modalidade,
                      "data": data,
                      "valor_pago": valor_pago}
             if modalidade == 2:
-                dados["cpf_pagador"] = input("CPF do pagador: ").strip()
+                dados["cpf_pagador"] = ler_campo("CPF do pagador: ")
             elif modalidade == 3:
-                dados["num_cartao"] = input("Número do cartão: ").strip()
-                dados["bandeira"] = input("Bandeira: ").strip()
+                dados["num_cartao"] = ler_campo("Número do cartão: ")
+                dados["bandeira"] = ler_campo("Bandeira: ")
+        
+        except OperacaoCanceladaError:
+            self.limite_mensagem("Operação cancelada.")
+            return None
+        
         except (ValueError, InvalidOperation):
             self.limite_mensagem("Dados inválidos. Verifique modalidade, data (DD/MM/AAAA) e valor.")
             return None

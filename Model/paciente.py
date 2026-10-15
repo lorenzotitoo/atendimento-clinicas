@@ -16,6 +16,7 @@ class Paciente(AbstractPessoa):
         return self.__data_nasc
     @data_nasc.setter
     def data_nasc(self, data_nasc: Date):
+        # Revalida a nova data de nascimento antes de efetuar a alteração
         validar_data_nascimento(data_nasc)
         self.__data_nasc = data_nasc
 
@@ -24,6 +25,7 @@ class Paciente(AbstractPessoa):
         return calcular_idade(self.__data_nasc, Date.today())
 
     def idade_em(self, data: Date) -> int:
+        # Calcula a idade do paciente numa data específica
         return calcular_idade(self.__data_nasc, data)
 
     def tipo_pessoa(self) -> str:

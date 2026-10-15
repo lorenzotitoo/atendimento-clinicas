@@ -50,6 +50,8 @@ class ControladorClinica:
         dados = self.__limite_clinica.coletar_dados_clinica()
         if dados is None:
             return
+        
+        # Impede duplicidade de nome caso seja alterado
         if dados["nome"].lower() != clinica.nome.lower() and self.buscar_clinica(dados["nome"]) is not None:
             self.__limite_clinica.limite_mensagem("Já existe uma clínica com esse nome.")
             return
@@ -60,6 +62,7 @@ class ControladorClinica:
             self.__limite_clinica.limite_mensagem(str(erro))
             return
 
+        # Verifica se a alteração do horário afetaria atendimentos agendados anteriormente
         for atendimento in self.__controlador_sistema.controlador_atendimentos.atendimentos:
             if atendimento.clinica is clinica:
                 if (atendimento.horario_inicio < dados["horario_fun_inicio"]

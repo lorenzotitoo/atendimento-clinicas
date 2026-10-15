@@ -14,6 +14,8 @@ class CartaoCredito(AbstractPagamento):
         num_cartao: str,
         bandeira: str):
         super().__init__(data, atendimento, paciente, valor_pago)
+        # Executa validação de formato e algoritmo de Luhn ao número de cartão
+        validar_numero_cartao(num_cartao)
         self.__num_cartao = num_cartao
         self.__bandeira = bandeira
 

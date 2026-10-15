@@ -142,6 +142,8 @@ class Atendimento:
         self.__horario_fim = horario_fim
         self.__tipo_atendimento = tipo_atendimento
         self.__valor_total = valor_total
+        
+        # Atualiza o paciente nos pagamentos existentes
         for pagamento in self.__pagamentos:
             pagamento.paciente = paciente
     

@@ -18,6 +18,8 @@ class ControladorRelatorio:
                 if atendimento.clinica is clinica:
                     quantidade += 1
             clinicas_atendimentos.append((clinica, quantidade))
+        
+        # Ordena em ordem decrescente de quantidade
         clinicas_atendimentos.sort(key=lambda item: item[1], reverse=True)
         self.__limite_relatorio.exibir_clinicas_atendimentos(clinicas_atendimentos)
 

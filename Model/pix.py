@@ -13,6 +13,7 @@ class Pix(AbstractPagamento):
         valor_pago: Decimal,
         cpf_pagador: str):
         super().__init__(data, atendimento, paciente, valor_pago)
+        # Assegura que o CPF de quem transferiu o Pix é legítimo
         validar_cpf(cpf_pagador)
         self.__cpf_pagador = cpf_pagador
 

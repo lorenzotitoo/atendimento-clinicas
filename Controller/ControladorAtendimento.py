@@ -21,7 +21,9 @@ class ControladorAtendimento:
         return self.__limite_atendimento
 
     def __buscar_referencias(self, dados: dict) -> tuple:
-        # retorna (paciente, clinica, profissional) ou None se algo for inválido
+        """Valida e busca as entidades relacionadas (paciente, clínica, profissional)
+        a partir dos dados coletados da tela. Também valida restrições de horários."""
+        
         paciente = self.__controlador_sistema.controlador_pacientes.buscar_paciente(dados["cpf_paciente"])
         if paciente is None:
             self.__limite_atendimento.limite_mensagem("Paciente não encontrado.")
@@ -75,6 +77,8 @@ class ControladorAtendimento:
         except SistemaClinicaError as erro:
             self.__limite_atendimento.limite_mensagem(str(erro))
             return
+        
+        # Gera ID sequencial e salva o atendimento
         atendimento.id_atendimento = max([a.id_atendimento for a in self.__atendimentos], default=0) + 1
         self.__atendimentos.append(atendimento)
         self.__limite_atendimento.limite_mensagem(f"Atendimento incluído com sucesso. ID: {atendimento.id_atendimento}")

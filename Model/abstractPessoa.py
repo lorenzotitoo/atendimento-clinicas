@@ -30,6 +30,7 @@ class AbstractPessoa(ABC):
         validar_cpf(cpf)
         self.__cpf = cpf
 
+    # Método abstrato que deve ser implementado pelas subclasses
     @abstractmethod
     def tipo_pessoa(self) -> str:
         pass

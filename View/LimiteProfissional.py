@@ -1,3 +1,5 @@
+from View.entrada import ler_campo, OperacaoCanceladaError
+
 class LimiteProfissional:
     def limite_opcoes(self) -> int:
         print("\n===== PROFISSIONAIS =====")
@@ -12,14 +14,22 @@ class LimiteProfissional:
             return -1
 
     def coletar_dados_profissional(self) -> dict:
-        nome = input("Nome: ").strip()
-        celular = input("Celular: ").strip()
-        cpf = input("CPF: ").strip()
-        especialidade = input("Especialidade: ")
-        registro_profissional = input("Registro profissional: ")
-        if not nome or not celular or not cpf or not especialidade or not registro_profissional:
-            self.limite_mensagem("Existe(m) campo(s) obrigatório(s) vazio(s)")
+        print("(Digite 0 em qualquer campo para cancelar)")
+        
+        try:
+            # Uso do ler_campo() garante que se digitar "0", o fluxo pula direto para o except OperacaoCanceladaError
+            nome = ler_campo("Nome: ")
+            celular = ler_campo("Celular: ")
+            cpf = ler_campo("CPF: ")
+            especialidade = ler_campo("Especialidade: ")
+            registro_profissional = ler_campo("Registro profissional: ")
+            if not nome or not celular or not cpf or not especialidade or not registro_profissional:
+                self.limite_mensagem("Existe(m) campo(s) obrigatório(s) vazio(s)")
+                return None
+        except OperacaoCanceladaError:
+            self.limite_mensagem("Operação cancelada.")
             return None
+        
         return {"nome": nome,
                 "celular": celular,
                 "cpf": cpf,

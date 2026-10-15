@@ -1,4 +1,5 @@
 from datetime import datetime
+from View.entrada import ler_campo, OperacaoCanceladaError
 
 class LimitePaciente:
     def limite_opcoes(self) -> int:
@@ -14,14 +15,19 @@ class LimitePaciente:
             return -1
 
     def coletar_dados_paciente(self) -> dict:
+        print("(Digite 0 em qualquer campo para cancelar)")
         try:
-            nome = input("Nome: ").strip()
-            celular = input("Celular: ").strip()
-            cpf = input("CPF: ").strip()
-            data_nasc = datetime.strptime(input("Data de nascimento (DD/MM/AAAA): "), "%d/%m/%Y").date()
+            # Uso do ler_campo() garante que se digitar "0", o fluxo pula direto para o except OperacaoCanceladaError
+            nome = ler_campo("Nome: ")
+            celular = ler_campo("Celular: ")
+            cpf = ler_campo("CPF: ")
+            data_nasc = datetime.strptime(ler_campo("Data de nascimento (DD/MM/AAAA): "), "%d/%m/%Y").date()
             if not nome or not celular or not cpf:
                 self.limite_mensagem("Existe(m) campo(s) obrigatório(s) vazio(s)")
                 return None
+        except OperacaoCanceladaError:
+            self.limite_mensagem("Operação cancelada.")
+            return None
         except ValueError:
             self.limite_mensagem("Data inválida. Use o formato DD/MM/AAAA.")
             return None
